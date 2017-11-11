@@ -5,7 +5,6 @@
 #include <maya/MPxNode.h> 
 
 #include <maya/MFnNumericAttribute.h>
-#include <maya/MFnMessageAttribute.h>
 #include <maya/MFnPlugin.h>
 
 #include <maya/MString.h> 
@@ -26,14 +25,14 @@ public:
 	static  MStatus		initialize();
 
 public:
-	static  MObject		group;
+	static  MObject		grpCenter;
 	static  MObject		explosion;
 	static  MObject		translations;
 	static	MTypeId		id;
 };
 
 MTypeId	explodeGroup::id( 0x000ff );
-MObject	explodeGroup::group;
+MObject	explodeGroup::grpCenter;
 MObject	explodeGroup::explosion;
 MObject	explodeGroup::translations;
 
@@ -42,15 +41,17 @@ explodeGroup::~explodeGroup() {}
 
 MStatus explodeGroup::compute( const MPlug& plug, MDataBlock& data ) {
 	
-	MStatus returnStatus;
+	MStatus stat;
  
 	if(plug == explodeGroup::translations)
 	{
 		cout << "COMPUTING" << endl;
-		/*
-		MDataHandle inputData = data.inputValue( input, &returnStatus );
+		
+		auto explosionData = data.inputValue(explodeGroup::explosion, &stat);
+		auto groupData = data.inputValue(explodeGroup::grpCenter, &stat );
 
-		if( returnStatus != MS::kSuccess )
+		/*
+		if( stat != MS::kSuccess )
 			cerr << "ERROR getting data" << endl;
 		else
 		{
@@ -60,6 +61,7 @@ MStatus explodeGroup::compute( const MPlug& plug, MDataBlock& data ) {
 			data.setClean(plug);
 		}
 		*/
+		
 	} else {
 		return MS::kUnknownParameter;
 	}
@@ -74,12 +76,11 @@ void* explodeGroup::creator()
 
 MStatus explodeGroup::initialize()
 {
-	MFnMessageAttribute mAttr;
 	MFnNumericAttribute nAttr;
 	MStatus				stat;
 
-	explodeGroup::group = mAttr.create("group", "grp");
-	mAttr.setReadable(false);
+	explodeGroup::grpCenter = nAttr.createPoint("groupCenter", "grp");
+	nAttr.setReadable(false);
 
 	explodeGroup::explosion = nAttr.create("explosion", "e", MFnNumericData::kFloat, 1.0 );
 
@@ -88,14 +89,14 @@ MStatus explodeGroup::initialize()
 	nAttr.setWritable(false);
 
 	// TODO: Here I think I can accomulate the stat vars and chack them once in the end
-	stat = addAttribute(explodeGroup::group);
+	stat = addAttribute(explodeGroup::grpCenter);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
 	stat = addAttribute(explodeGroup::explosion);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
 	stat = addAttribute(explodeGroup::translations);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
 	
-	stat = attributeAffects(explodeGroup::explosion, explodeGroup::translations);
+	stat = attributeAffects(explodeGroup::grpCenter, explodeGroup::translations);
 		if (!stat) { stat.perror("attributeAffects"); return stat;}
 	stat = attributeAffects(explodeGroup::explosion, explodeGroup::translations);
 		if (!stat) { stat.perror("attributeAffects"); return stat;}		
