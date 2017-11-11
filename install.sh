@@ -1,0 +1,1 @@
+cp *.so ~/maya/plug-ins/
