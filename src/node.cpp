@@ -25,7 +25,6 @@ public:
 	static  MStatus		initialize();
 
 public:
-	static  MObject		grpCenter;
 	static  MObject		explosion;
 	static  MObject		centers;
 	static  MObject		translations;
@@ -33,7 +32,6 @@ public:
 };
 
 MTypeId	explodeGroup::id( 0x000ff );
-MObject	explodeGroup::grpCenter;
 MObject	explodeGroup::explosion;
 MObject explodeGroup::centers;
 MObject	explodeGroup::translations;
@@ -49,7 +47,6 @@ MStatus explodeGroup::compute( const MPlug& plug, MDataBlock& data ) {
 	{
 		
 		auto explosionData = data.inputValue(explodeGroup::explosion, &stat);
-		//auto groupData = data.inputValue(explodeGroup::grpCenter, &stat);
 		auto centersData = data.inputArrayValue(explodeGroup::centers, &stat);
 		
 		if( stat != MS::kSuccess )
@@ -65,12 +62,11 @@ MStatus explodeGroup::compute( const MPlug& plug, MDataBlock& data ) {
 				auto oData = outputData.outputValue();
 
 				auto c = cData.asFloat3();
-				oData.set3Float(e*(c[0]-1), e*(c[1]-1), e*(c[2]-1));
+				oData.set3Float(e*c[0], e*c[1], e*c[2]);
 
 				centersData.next();
 			} while(outputData.next());
 
-			//outputHandle.set( result );
 			data.setClean(plug);
 		}
 		
@@ -92,10 +88,9 @@ MStatus explodeGroup::initialize()
 	MFnNumericAttribute nAttr;
 	MStatus				stat;
 
-	explodeGroup::grpCenter = nAttr.createPoint("groupCenter", "grp");
-	nAttr.setReadable(false);
-
 	explodeGroup::explosion = nAttr.create("explosion", "e", MFnNumericData::kFloat, 1.0 );
+	nAttr.setMin(1);
+	nAttr.setMax(5);
 
 	explodeGroup::centers = nAttr.createPoint("centers", "cs");
 	nAttr.setArray(true);
@@ -109,8 +104,6 @@ MStatus explodeGroup::initialize()
 	nAttr.setIndexMatters(true);
 
 	// TODO: Here I think I can accomulate the stat vars and chack them once in the end
-	stat = addAttribute(explodeGroup::grpCenter);
-		if (!stat) { stat.perror("addAttribute"); return stat;}
 	stat = addAttribute(explodeGroup::explosion);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
 	stat = addAttribute(explodeGroup::centers);
@@ -118,8 +111,6 @@ MStatus explodeGroup::initialize()
 	stat = addAttribute(explodeGroup::translations);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
 	
-	stat = attributeAffects(explodeGroup::grpCenter, explodeGroup::translations);
-		if (!stat) { stat.perror("attributeAffects"); return stat;}
 	stat = attributeAffects(explodeGroup::explosion, explodeGroup::translations);
 		if (!stat) { stat.perror("attributeAffects"); return stat;}	
 	stat = attributeAffects(explodeGroup::centers, explodeGroup::translations);
