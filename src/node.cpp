@@ -27,16 +27,16 @@ public:
 public:
 	static  MObject		grpCenter;
 	static  MObject		explosion;
-	static  MObject		translations;
 	static  MObject		centers;
+	static  MObject		translations;
 	static	MTypeId		id;
 };
 
 MTypeId	explodeGroup::id( 0x000ff );
 MObject	explodeGroup::grpCenter;
 MObject	explodeGroup::explosion;
-MObject	explodeGroup::translations;
 MObject explodeGroup::centers;
+MObject	explodeGroup::translations;
 
 explodeGroup::explodeGroup() {}
 explodeGroup::~explodeGroup() {}
@@ -47,22 +47,28 @@ MStatus explodeGroup::compute( const MPlug& plug, MDataBlock& data ) {
  
 	if(plug == explodeGroup::translations)
 	{
-		cout << "COMPUTING" << endl;
 		
 		auto explosionData = data.inputValue(explodeGroup::explosion, &stat);
-		auto groupData = data.inputValue(explodeGroup::grpCenter, &stat );
-
+		//auto groupData = data.inputValue(explodeGroup::grpCenter, &stat);
+		auto centersData = data.inputArrayValue(explodeGroup::centers, &stat);
 		
 		if( stat != MS::kSuccess )
 			cerr << "ERROR getting data" << endl;
 		else {
 			
-			//float result = sinf( inputData.asFloat() ) * 10.0f;
+			auto outputData = data.outputArrayValue(explodeGroup::translations);
 
-			auto outputHandle = data.outputArrayValue(explodeGroup::translations);
+			auto e = explosionData.asFloat();
 
-			while(outputHandle.next())
-				cout << "ELEM" << endl;
+			do{
+				auto cData = centersData.inputValue();
+				auto oData = outputData.outputValue();
+
+				auto c = cData.asFloat3();
+				oData.set3Float(e*(c[0]-1), e*(c[1]-1), e*(c[2]-1));
+
+				centersData.next();
+			} while(outputData.next());
 
 			//outputHandle.set( result );
 			data.setClean(plug);
