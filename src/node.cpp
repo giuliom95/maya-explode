@@ -5,6 +5,7 @@
 #include <maya/MPxNode.h> 
 
 #include <maya/MFnNumericAttribute.h>
+#include <maya/MFnMessageAttribute.h>
 #include <maya/MFnPlugin.h>
 
 #include <maya/MString.h> 
@@ -25,14 +26,14 @@ public:
 	static  MStatus		initialize();
 
 public:
-	static  MObject		input;		// The input value.
-	static  MObject		output;		// The output value.
+	static  MObject		group;
+	static  MObject		explosion;
 	static	MTypeId		id;
 };
 
 MTypeId	explodeGroup::id( 0x000ff );
-MObject	explodeGroup::input;
-MObject	explodeGroup::output;
+MObject	explodeGroup::group;
+MObject	explodeGroup::explosion;
 
 explodeGroup::explodeGroup() {}
 explodeGroup::~explodeGroup() {}
@@ -69,21 +70,21 @@ void* explodeGroup::creator()
 MStatus explodeGroup::initialize()
 {
 	MFnNumericAttribute nAttr;
+	MFnMessageAttribute mAttr;
 	MStatus				stat;
 
-	input = nAttr.create( "input", "in", MFnNumericData::kFloat, 0.0 );
- 	nAttr.setStorable(true);
+	explodeGroup::explosion = nAttr.create( "explosion", "e", MFnNumericData::kFloat, 1.0 );
 
-	output = nAttr.create( "output", "out", MFnNumericData::kFloat, 0.0 );
-	nAttr.setWritable(false);
-	nAttr.setStorable(false);
+	explodeGroup::group = mAttr.create("group", "grp");
+	mAttr.setWritable(false);
 
-	stat = addAttribute( input );
+	stat = addAttribute(explodeGroup::explosion);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
-	stat = addAttribute( output );
+	
+	stat = addAttribute(explodeGroup::group);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
 
-	stat = attributeAffects( input, output );
+	stat = attributeAffects(explodeGroup::explosion, explodeGroup::group);
 		if (!stat) { stat.perror("attributeAffects"); return stat;}
 
 	return MS::kSuccess;
