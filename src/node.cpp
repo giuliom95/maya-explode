@@ -28,12 +28,14 @@ public:
 public:
 	static  MObject		group;
 	static  MObject		explosion;
+	static  MObject		translations;
 	static	MTypeId		id;
 };
 
 MTypeId	explodeGroup::id( 0x000ff );
 MObject	explodeGroup::group;
 MObject	explodeGroup::explosion;
+MObject	explodeGroup::translations;
 
 explodeGroup::explodeGroup() {}
 explodeGroup::~explodeGroup() {}
@@ -42,8 +44,10 @@ MStatus explodeGroup::compute( const MPlug& plug, MDataBlock& data ) {
 	
 	MStatus returnStatus;
  
-	/*if( plug == output )
+	if(plug == explodeGroup::translations)
 	{
+		cout << "COMPUTING" << endl;
+		/*
 		MDataHandle inputData = data.inputValue( input, &returnStatus );
 
 		if( returnStatus != MS::kSuccess )
@@ -55,9 +59,10 @@ MStatus explodeGroup::compute( const MPlug& plug, MDataBlock& data ) {
 			outputHandle.set( result );
 			data.setClean(plug);
 		}
+		*/
 	} else {
 		return MS::kUnknownParameter;
-	}*/
+	}
 
 	return MS::kSuccess;
 }
@@ -69,23 +74,31 @@ void* explodeGroup::creator()
 
 MStatus explodeGroup::initialize()
 {
-	MFnNumericAttribute nAttr;
 	MFnMessageAttribute mAttr;
+	MFnNumericAttribute nAttr;
 	MStatus				stat;
 
-	explodeGroup::explosion = nAttr.create( "explosion", "e", MFnNumericData::kFloat, 1.0 );
-
 	explodeGroup::group = mAttr.create("group", "grp");
-	mAttr.setWritable(false);
+	mAttr.setReadable(false);
 
-	stat = addAttribute(explodeGroup::explosion);
-		if (!stat) { stat.perror("addAttribute"); return stat;}
-	
+	explodeGroup::explosion = nAttr.create("explosion", "e", MFnNumericData::kFloat, 1.0 );
+
+	explodeGroup::translations = nAttr.createPoint("translations", "ts");
+	nAttr.setArray(true);
+	nAttr.setWritable(false);
+
+	// TODO: Here I think I can accomulate the stat vars and chack them once in the end
 	stat = addAttribute(explodeGroup::group);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
-
-	stat = attributeAffects(explodeGroup::explosion, explodeGroup::group);
+	stat = addAttribute(explodeGroup::explosion);
+		if (!stat) { stat.perror("addAttribute"); return stat;}
+	stat = addAttribute(explodeGroup::translations);
+		if (!stat) { stat.perror("addAttribute"); return stat;}
+	
+	stat = attributeAffects(explodeGroup::explosion, explodeGroup::translations);
 		if (!stat) { stat.perror("attributeAffects"); return stat;}
+	stat = attributeAffects(explodeGroup::explosion, explodeGroup::translations);
+		if (!stat) { stat.perror("attributeAffects"); return stat;}		
 
 	return MS::kSuccess;
 }
