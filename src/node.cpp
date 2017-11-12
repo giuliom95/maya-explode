@@ -27,6 +27,7 @@ public:
 public:
 	static  MObject		explosion;
 	static  MObject		centers;
+	static  MObject		deltas;
 	static  MObject		translations;
 	static	MTypeId		id;
 };
@@ -34,6 +35,7 @@ public:
 MTypeId	explodeGroup::id( 0x000ff );
 MObject	explodeGroup::explosion;
 MObject explodeGroup::centers;
+MObject explodeGroup::deltas;
 MObject	explodeGroup::translations;
 
 explodeGroup::explodeGroup() {}
@@ -48,6 +50,7 @@ MStatus explodeGroup::compute( const MPlug& plug, MDataBlock& data ) {
 		
 		auto explosionData = data.inputValue(explodeGroup::explosion, &stat);
 		auto centersData = data.inputArrayValue(explodeGroup::centers, &stat);
+		auto deltasData = data.inputArrayValue(explodeGroup::deltas, &stat);
 		
 		if( stat != MS::kSuccess )
 			cerr << "ERROR getting data" << endl;
@@ -58,12 +61,14 @@ MStatus explodeGroup::compute( const MPlug& plug, MDataBlock& data ) {
 			auto e = explosionData.asFloat();
 
 			do{
-				auto cData = centersData.inputValue();
 				auto oData = outputData.outputValue();
 
-				auto c = cData.asFloat3();
-				oData.set3Float(e*c[0], e*c[1], e*c[2]);
+				auto c = centersData.inputValue().asFloat3();
+				auto d = deltasData.inputValue().asFloat3();
 
+				oData.set3Float(e*c[0]-d[0], e*c[1]-d[1], e*c[2]-d[2]);
+
+				deltasData.next();
 				centersData.next();
 			} while(outputData.next());
 
@@ -98,6 +103,12 @@ MStatus explodeGroup::initialize()
 	nAttr.setIndexMatters(true);
 	nAttr.setHidden(true);
 
+	explodeGroup::deltas = nAttr.createPoint("deltas", "ds");
+	nAttr.setArray(true);
+	nAttr.setReadable(false);
+	nAttr.setIndexMatters(true);
+	nAttr.setHidden(true);
+
 	explodeGroup::translations = nAttr.createPoint("translations", "ts");
 	nAttr.setArray(true);
 	nAttr.setWritable(false);
@@ -108,12 +119,16 @@ MStatus explodeGroup::initialize()
 		if (!stat) { stat.perror("addAttribute"); return stat;}
 	stat = addAttribute(explodeGroup::centers);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
+	stat = addAttribute(explodeGroup::deltas);
+		if (!stat) { stat.perror("addAttribute"); return stat;}
 	stat = addAttribute(explodeGroup::translations);
 		if (!stat) { stat.perror("addAttribute"); return stat;}
 	
 	stat = attributeAffects(explodeGroup::explosion, explodeGroup::translations);
 		if (!stat) { stat.perror("attributeAffects"); return stat;}	
 	stat = attributeAffects(explodeGroup::centers, explodeGroup::translations);
+		if (!stat) { stat.perror("attributeAffects"); return stat;}	
+	stat = attributeAffects(explodeGroup::deltas, explodeGroup::translations);
 		if (!stat) { stat.perror("attributeAffects"); return stat;}	
 
 	return MS::kSuccess;
