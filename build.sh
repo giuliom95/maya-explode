@@ -1,7 +1,8 @@
-SRC="node"
+IN="node"
 OUT="explode"
 STD="c++11"
+MAYA_PATH="/usr/autodesk/maya2017"
 
-g++ -std=$STD -c -I/usr/autodesk/maya2017/include -fPIC src/$SRC.cpp
-g++ -std=$STD -shared -o $OUT.so *.o -L/usr/autodesk/maya2017/lib -lOpenMaya
+g++ -std=$STD -c -I$MAYA_PATH/include -fPIC src/$IN.cpp
+g++ -std=$STD -shared -o $OUT.so *.o -L$MAYA_PATH/lib -lOpenMaya
 rm *.o
